@@ -47,8 +47,6 @@ fi
 
 #Change directories into the tap, then initialize git settings and make sure it's up-to-date
 cd "brew-tap/Formula"
-
-git init
 git config user.name "homebrew-experimental (CircleCI)"
 git config user.email "mike@mplew.is"
 
