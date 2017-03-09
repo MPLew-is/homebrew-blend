@@ -1,6 +1,8 @@
 # brew-blend: meta-formulae for homebrew #
 
 
+CircleCI: [![CircleCI build status](https://circleci.com/gh/MPLew-is/homebrew-blend.svg?style=svg)](https://circleci.com/gh/MPLew-is/homebrew-blend)
+
 ## What? ##
 
 This is a `homebrew` external command, implementing meta-formulae called `Blends`
@@ -168,6 +170,6 @@ Hi, I'm Mike, an IT administrator and full-stack developer, dealing primarily wi
 
 - [x] Clean up some variable naming schemes
 
-- [ ] Integrate with CI
+- [x] Integrate with CI
 
 - [ ] Output new formula when running `brew blend update`
