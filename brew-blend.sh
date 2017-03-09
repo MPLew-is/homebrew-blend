@@ -374,7 +374,24 @@ forEachBlend()
 	#Iterate through the input blends, and fail if no tap path is returned
 	while [ "${#}" -gt "0" ]
 	do
+		#If the input blend name contains a slash, treat it as a fully-qualified tap+blend name
 		blendName="${1}"
+		if [ "${blendName##*/}" != "${blendName}" ]
+		then
+			#Strip everything after the last slash to get the tap name
+			tapName="${blendName%/*}"
+			
+			#If the tap name does not contain a slash, it's not a valid tap, so print a message and return with error
+			if [ "${tapName##*/}" = "${tapName}" ]
+			then
+				echo "The given tap '${tapName}' is not valid; it should be in user/repository format" 1>&2
+				return 85
+			fi
+			
+			#Otherwise, tap the tap, and set the blend name to the shortened value
+			brew tap "${tapName}"
+			blendName="${blendName##*/}"
+		fi
 		
 		if ! blendPath="$(getBlendPath "${blendName}")"
 		then
@@ -494,25 +511,8 @@ command_install_blend()
 #Use `brew bundle` to install each input argument after validating it exists
 installBlend()
 {
-	#If the input blend name contains a slash, treat it as a fully-qualified tap+blend name
+	#Set initial variables for easy use later in the function
 	blendName="${1}"
-	if [ "${blendName##*/}" != "${blendName}" ]
-	then
-		#Strip everything after the last slash to get the tap name
-		tapName="${blendName%/*}"
-		
-		#If the tap name does not contain a slash, it's not a valid tap, so print a message and return with error
-		if [ "${tapName##*/}" = "${tapName}" ]
-		then
-			echo "The given tap '${tapName}' is not valid; it should be in user/repository format" 1>&2
-			return 85
-		fi
-		
-		#Otherwise, tap the tap, and set the blend name to the shortened value
-		brew tap "${tapName}"
-		blendName="${blendName##*/}"
-	fi
-	
 	blendDirectory="${blendRoot}/${blendName}"
 	blendTapPath="${2}"
 	
