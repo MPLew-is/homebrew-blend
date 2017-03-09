@@ -57,6 +57,8 @@ The script is written to be as POSIX-compliant as possible, but if you find any 
 
 - `brew blend uninstall` uninstalls a given blend
 
+	- If the `--blend-only` flag is provided, only the blend (and none of its components) will be removed
+
 	- Formulae will be uninstalled only if they are:
 	
 		- (a) not present in any other blend
