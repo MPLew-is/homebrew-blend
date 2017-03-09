@@ -90,8 +90,15 @@ catStatus()
 printUsageMessage()
 {
 	cat <<-EOF
-		Usage:  brew blend (install | uninstall) {NAME} [{NAME}...]
-		Help:   brew blend help
+		Initial setup:      brew blend (install | uninstall) --self
+		Check installation: brew blend check
+		List:               brew blend list
+		Info:               brew blend info {NAME} [{NAME}...]
+		Search:             brew blend search {NAME}
+		Installation:       brew blend (install | uninstall) {NAME} [{NAME}...]
+		Updating:           brew blend update
+		Upgrading:          brew blend upgrade [{NAME}...}
+		Help:               brew blend help
 		
 	EOF
 }
@@ -124,6 +131,9 @@ command_help()
 		    "uninstall":        uninstall the given blend name
 		    "update":           check all installed blends for updates, and print the names of those that need to be upgraded
 		    "upgrade":          upgrade all outdated blends
+		
+		Arguments:
+		    "--quiet": can be provided to any command (except help) to silence any status output
 		
 		
 		brew-blend searches all of your taps for "blends" (meta-formulae) in a 'BlendFormula' directory
