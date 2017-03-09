@@ -162,7 +162,7 @@ Hi, I'm Mike, an IT administrator and full-stack developer, dealing primarily wi
 
 - [ ] Add `man` page/other documentation
 
-- [ ] Flesh out code comments
+- [x] Flesh out code comments
 
 - [ ] Clean up some variable naming schemes
 

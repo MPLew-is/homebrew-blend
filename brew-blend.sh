@@ -36,12 +36,14 @@ then
 fi
 
 
+#Define some variables to allow for easy changing later
 blendRoot="${HOMEBREW_PREFIX}/Elevage"
 blendFormulaPath="BlendFormula"
 infoFileSuffix="text"
 blendFileSuffix="brewfile"
 
 
+#Initialize variable indicating whether any blends were updated
 updated="false"
 
 
@@ -168,6 +170,7 @@ command_check()
 }
 
 
+#Call correct install sub-command depending on whether this is a self-install or not
 command_install()
 {
 	if [ "${#}" = "1" ] && [ "${1}" = "--self" ]
@@ -182,8 +185,10 @@ command_install()
 }
 
 
+#Create blend storage directory and set its permissions
 command_install_self()
 {
+	#Check if already installed, and return if so, as another installation is unnecessary
 	if quiet="true" command_check
 	then
 		catStatus "brew-blend is already installed"
@@ -191,13 +196,18 @@ command_install_self()
 	fi
 	
 	
+	#Set variable for Elevage's parent directory
 	parentDirectory="$(dirname "${blendRoot}")"
+	
+	
 	printStatus "Creating Elevage in '${parentDirectory}'... "
 	
-	if [ -r "${HOMEBREW_PREFIX}" ] && [ -w "${HOMEBREW_PREFIX}" ]
+	#If the parent directory is readable and writable by the current user, create directory and ensure correct permissions automatically
+	if [ -r "${parentDirectory}" ] && [ -w "${parentDirectory}" ]
 	then
 		if mkdir -p "${blendRoot}"
 		then
+			#These permissions were taken from homebrew-cask, which has a similar setup
 			chmod "g+rwx" "${blendRoot}"
 			chown "$(whoami):admin" "${blendRoot}"
 			
@@ -208,12 +218,14 @@ command_install_self()
 			return 31
 		fi
 	
+	#Otherwise, prompt for sudo to create and set permissions on the directory
 	else
 		echoStatus "permissions needed"
-		echoStatus "We need elevated permissions to set up brew-blend, but we'll set permissions properly so we won't need them in the future."
+		echoStatus "We need elevated permissions to set up brew-blend, but we'll set permissions properly so we won't need them in the future"
 		
 		if sudo mkdir -p "${blendRoot}"
 		then
+			#These permissions were taken from homebrew-cask, which has a similar setup
 			sudo chmod "g+rwx" "${blendRoot}"
 			sudo chown "$(whoami):admin" "${blendRoot}"
 			
@@ -231,6 +243,7 @@ command_install_self()
 }
 
 
+#Call correct uninstall sub-command depending on whether this is a self-uninstall or not
 command_uninstall()
 {
 	if [ "${#}" = "1" ] && [ "${1}" = "--self" ]
@@ -245,8 +258,10 @@ command_uninstall()
 }
 
 
+#Remove blend storage directory created by command_install_self
 command_uninstall_self()
 {
+	#If brew-blend is not installed, don't run the uninstallation
 	if ! quiet="true" command_check
 	then
 		catStatus "brew-blend is not installed"
@@ -254,9 +269,12 @@ command_uninstall_self()
 	fi
 	
 	
+	#Set variable for Elevage's parent directory
 	parentDirectory="$(dirname "${blendRoot}")"
+	
 	printStatus "Removing Elevage from '${parentDirectory}'... "
 	
+	#If the parent directory is readable and writable by the current user, remove Elevage directory automatically
 	if [ -r "${parentDirectory}" ] && [ -w "${parentDirectory}" ]
 	then
 		if rm -rf "${blendRoot}"
@@ -268,6 +286,7 @@ command_uninstall_self()
 			return 41
 		fi
 	
+	#Otherwise, prompt for sudo to remove the directory
 	else
 		echoStatus "permissions needed"
 		echoStatus "We need elevated permissions to remove brew-blend."
@@ -288,6 +307,7 @@ command_uninstall_self()
 }
 
 
+#Install brew-blend if called and not installed
 ensureInstallation()
 {
 	if ! quiet="true" command_check
@@ -300,6 +320,7 @@ ensureInstallation()
 }
 
 
+#List all folders in the Elevage directory, which is the list of all installed blends
 command_list()
 {
 	ensureInstallation
@@ -310,6 +331,7 @@ command_list()
 }
 
 
+#Get the paths to all homebrew taps from the homebrew JSON API, with pinned taps listed first so those blends appear first
 getTapPaths()
 {
 	brew tap-info --json=v1 --installed | \
@@ -320,6 +342,7 @@ getTapPaths()
 }
 
 
+#Search all taps for the input blend name, and return that blend's full path if found
 getBlendPath()
 {
 	blendName="${1}"
@@ -341,11 +364,14 @@ getBlendPath()
 	}
 }
 
+#Execute an input function for each blend name listed as an argument
 forEachBlend()
 {
+	#Store the input command so it can be shifted off
 	forEachCommand="${1}"
 	shift
 	
+	#Iterate through the input blends, and fail if no tap path is returned
 	while [ "${#}" -gt "0" ]
 	do
 		blendName="${1}"
@@ -356,6 +382,7 @@ forEachBlend()
 			return 4
 		fi
 		
+		#If found, call the input function with the blend name and full blend path
 		"${forEachCommand}" "${blendName}" "${blendPath}"
 		
 		shift
@@ -364,11 +391,15 @@ forEachBlend()
 	return 0
 }
 
+#Execute an input function for each blend name listed as an argument
+#Differs from `forEachBlend` in that it does not fail if the blend no longer exists in its tap
 forEachLocalBlend()
 {
+	#Store the input command so it can be shifted off
 	forEachCommand="${1}"
 	shift
 	
+	#Iterate through the input blends, and fail if no installed blend is found
 	while [ "${#}" -gt "0" ]
 	do
 		blendName="${1}"
@@ -376,14 +407,16 @@ forEachLocalBlend()
 		if [ ! -d "${blendRoot}/${blendName}" ]
 		then
 			catStatus "Blend '${blendName}' not found" 1>&2
-			return 4
+			return 5
 		fi
 		
+		#If the blend is not found in any tap, simply set the tap path to an empty string
 		if ! blendPath="$(getBlendPath "${blendName}")"
 		then
 			blendPath=""
 		fi
 		
+		#If found, call the input function with the blend name and full blend path
 		"${forEachCommand}" "${blendName}" "${blendPath}"
 		
 		shift
@@ -393,6 +426,7 @@ forEachLocalBlend()
 }
 
 
+#Call `displayBlendInfo` for each input blend
 command_info()
 {
 	ensureInstallation
@@ -402,6 +436,7 @@ command_info()
 	return 0
 }
 
+#`cat` the info file associated with the input blend
 displayBlendInfo()
 {
 	blendTapPath="${2}"
@@ -411,10 +446,13 @@ displayBlendInfo()
 }
 
 
+#Search all taps for the input blend name with wildcards on either side
 command_search()
 {
 	ensureInstallation
 	
+	#Ensure exactly one blend name is provided
+	#With just using `forEachBlend`, search would be **extremely** inefficient, and the output would likely be confusing, so it's being limited to 1 blend at a time
 	if [ "${#}" = "0" ]
 	then
 		catStatus "No blend names were provided" 1>&2
@@ -426,22 +464,24 @@ command_search()
 		return 72
 	fi
 	
+	#Store the blend name in a variable for easy reference
 	blendName="${1}"
 	
+	
+	#Get paths to all taps
 	getTapPaths | \
 	
+	#Find all blend files in installed taps
 	xargs -n 1 -I_path -- find "_path/${blendFormulaPath}" -name "*${blendName}*.${blendFileSuffix}" 2>/dev/null | \
 	
-	sed -e "s:^${HOMEBREW_PREFIX}/Homebrew/Library/Taps/::g" | \
-	
-	sed -e "s:${blendFormulaPath}/::g" | \
-	
-	sed -e "s:.${blendFileSuffix}\$::g"
+	#Strip the initial path prefix, the Elevage directory prefix, and the file suffix from the file path to get the fully-qualified blend name
+	sed -e "s:^${HOMEBREW_PREFIX}/Homebrew/Library/Taps/::g" -e "s:${blendFormulaPath}/::g" -e "s:.${blendFileSuffix}\$::g"
 	
 	return 0
 }
 
 
+#Call installBlend for each input blend name
 command_install_blend()
 {
 	ensureInstallation
@@ -451,42 +491,98 @@ command_install_blend()
 	return 0
 }
 
+#Use `brew bundle` to install each input argument after validating it exists
 installBlend()
 {
+	#Set some initial variables for easy reference
 	blendName="${1}"
 	blendDirectory="${blendRoot}/${blendName}"
 	tapBlendPath="${2}"
 	
+	#Check if formulae is already installed; don't install if so
 	if [ -d "${blendDirectory}" ]
 	then
 		catStatus "Blend '${blendName}' is already installed" 1>&2
 		return 81
 	fi
 	
-	printStatus "Making a copy of blend '${blendName}' in Elevage... "
-	if mkdir -p "${blendDirectory}" && cp "${tapBlendPath}.${blendFileSuffix}" "${blendDirectory}/${blendName}.${blendFileSuffix}"
+	
+	#Create the directory for the blend
+	printStatus "Creating directory for blend '${blendName}' in Elevage... "
+	if mkdir "${blendDirectory}"
 	then
+		#If the creation succeeds, copy the blend file into it
 		echoStatus "done"
+		printStatus "Making a copy of blend '${blendName}' in Elevage... "
 		
+		if cp "${tapBlendPath}.${blendFileSuffix}" "${blendDirectory}/${blendName}.${blendFileSuffix}"
+		then
+			echoStatus "done"
+		
+		#If the copying fails, clean up the created blend directory
+		else
+			echoStatus "ERROR"
+			
+			removeBlendDirectory "${blendName}"
+			
+			return 82
+		fi
+	
+	#Fail with error if the directory fails to be created
 	else
 		echoStatus "ERROR"
-		return 82
+		return 83
 	fi
 	
+	#Install the blend file
 	echoStatus "Using brew-bundle to install blend '${blendName}'..."
 	if brew bundle --file="${blendDirectory}/${blendName}.${blendFileSuffix}"
 	then
 		echoStatus "Blend '${blendName}' successfully installed"
 	
+	#If installation fails, clean up the created blend directory
 	else
 		echoStatus "ERROR installing blend '${blendName}'"
-		return 83
+		
+		removeBlendDirectory "${blendName}"
+		
+		return 84
 	fi
 	
 	return 0
 }
 
 
+#Remove the blend directory created for the input blend
+removeBlendDirectory()
+{
+	blendName="${1}"
+	blendDirectory="${blendRoot}/${blendName}"
+	
+	#Don't attempt to remove the blend directory if not present
+	if [ ! -d "${blendDirectory}" ]
+	then
+		echoStatus "Unknown blend '${blendName}'" 1>&2
+		return 7
+	fi
+	
+	#Attempt to remove the blend directory
+	printStatus "Removing directory for blend '${blendName}' in Elevage... "
+	if rm -rf "${blendDirectory}"
+	then
+		echoStatus "done"
+	
+	#This should basically never happen unless the user messes with permission settings, but it's put here just in case
+	else
+		echoStatus "ERROR"
+		echoStatus "Well, crap. Something has gone critically wrong here. Please remove the directory '${blendDirectory}' manually to reset your installation, and report this issue on GitHub if possible." 1>&2
+		
+		return 6
+	fi
+}
+
+
+#Call `uninstallBlend` or `uninstallBlendFile` for each input blend name, depending on the presence of the `--blend-only` flag
 command_uninstall_blend()
 {
 	ensureInstallation
@@ -494,7 +590,7 @@ command_uninstall_blend()
 	if [ "${1}" = "--blend-only" ]
 	then
 		shift
-		forEachLocalBlend "uninstallBlendFile" "${@}"
+		forEachLocalBlend "removeBlendDirectory" "${@}"
 	
 	else
 		forEachLocalBlend "uninstallBlend" "${@}"
@@ -503,8 +599,10 @@ command_uninstall_blend()
 	return 0
 }
 
+#Uninstall the blend completely, including any leaf formulae, taps, and casks (all casks are treated as leaves)
 uninstallBlend()
 {
+	#Check if the formula is actually installed before attempting uninstallation
 	blendName="${1}"
 	blendDirectory="${blendRoot}/${blendName}"
 	if [ ! -d "${blendDirectory}" ]
@@ -514,9 +612,15 @@ uninstallBlend()
 	fi
 	
 	
+	#Store a copy of `brew leaves` to compare against after uninstallation
 	storedLeaves="$(brew leaves)"
+	
+	#Do a first-pass at uninstalling leaf formulae
 	uninstallFormulae "${blendName}"
 	
+	#While the leaf formulae keep changing, continue running through the uninstallation
+	#This is done to allow the uninstallation of chained formulae that are not used anywhere else
+	#For instance, if a blend installs A, B, and C (in that order), where A depends on B depends on C, the first pass will uninstall C, the second B, and the third A until `brew leaves` remains the same indicating there are no more leaf formulae available for uninstall
 	leaves="$(brew leaves)"
 	while [ "${leaves}" != "${storedLeaves}" ]
 	do
@@ -526,41 +630,57 @@ uninstallBlend()
 	done
 	
 	
+	#Search for the 'cask' type string in the blend file
 	grep "^cask" "${blendDirectory}/${blendName}.${blendFileSuffix}" | \
 	
+	#Get just the cask type and name, so that different arguments between blends do not register as different casks
 	awk '{print $1" "$2}' | \
 	
+	#Remove the trailing comma, if present
 	sed -e 's/,$//g' | \
 	
 	{
+		#Iterate through each cask, uninstalling it if not found in any other blends
 		while read -r cask
 		do
+			#Search all blends except the one being uninstalled for the cask intallation string, skipping this cask if found
 			if grep --quiet --recursive --exclude-dir="${blendDirectory}" "${cask}" "${blendRoot}"
 			then
 				continue
 			fi
 			
+			#If not found, get just the cask name from the "cask '{user}/{repo}'"
 			caskName="$(echo "${cask}" | awk '{print $2}' | sed -e "s/^'//g" -e "s/'$//g")"
+			
+			#Uninstall the cask
 			brew cask uninstall "${caskName}"
 		done
 	}
 	
 	
+	#Search for the 'tap' type string in the blend file
 	grep "^tap" "${blendDirectory}/${blendName}.${blendFileSuffix}" | \
 	
+	#Get just the tap type and name, so that different arguments between blends do not register as different taps
 	awk '{print $1" "$2}' | \
 	
+	#Remove the trailing comma, if present
 	sed -e 's/,$//g' | \
 	
 	{
+		#Iterate through each tap, untapping it if not found in any other blends
 		while read -r tap
 		do
+			#Search all blends except the one being uninstalled for the cask intallation string, skipping this tap if found
 			if grep --quiet --recursive --exclude-dir="${blendDirectory}" "${tap}" "${blendRoot}"
 			then
 				continue
 			fi
 			
+			#If not found, get just the tap name from the "tap '{user}/{repo}'" format
 			tapName="$(echo "${tap}" | awk '{print $2}' | sed -e "s/^'//g" -e "s/'$//g")"
+			
+			#If no formulae are installed from the given tap, untap it
 			if ! ( brew list --full-name | grep --quiet "${tapName}" )
 			then
 				brew untap "${tapName}"
@@ -568,32 +688,42 @@ uninstallBlend()
 		done
 	}
 	
-	
-	uninstallBlendFile "${blendName}"
+	#Remove the actual blend directory
+	removeBlendDirectory "${blendName}"
 	return 0
 }
 
+#Uninstall normal homebrew formulae
+#This is a separate function to allow multiple calls as `brew leaves` is monitored
 uninstallFormulae()
 {
+	#Set variables for the blend name and directory
 	blendName="${1}"
 	blendDirectory="${blendRoot}/${blendName}"
 	
+	#Search for the 'brew' type string in the blend file
 	grep "^brew" "${blendDirectory}/${blendName}.${blendFileSuffix}" | \
 	
+	#Get just the formula type and name, so that different arguments between blends do not register as different formulae
 	awk '{print $1" "$2}' | \
 	
+	#Remove the trailing comma, if present
 	sed -e 's/,$//g' | \
 	
 	{
+		#Iterate through each formula, uninstalling it if not present in other blends, or depended on by other formulae
 		while read -r formula
 		do
+			#Search all blends except the one being uninstalled for the cask intallation string, skipping this formula if found
 			if grep --quiet --recursive --exclude-dir="${blendDirectory}" "${formula}" "${blendRoot}"
 			then
 				continue
 			fi
 			
-			
+			#If not found, get just the formula name from the "brew '{user}/{repo}'" format
 			formulaName="$(echo "${formula}" | awk '{print $2}' | sed -e "s/^'//g" -e "s/'$//g")"
+			
+			#If the formula isn't depended on by another (i.e. is a "leaf"), uninstall it
 			if ( brew leaves | grep --quiet "^${formulaName}\$" )
 			then
 				brew uninstall "${formulaName}" || true
@@ -602,29 +732,13 @@ uninstallFormulae()
 	}
 }
 
-uninstallBlendFile()
-{
-	blendName="${1}"
-	blendDirectory="${blendRoot}/${blendName}"
-	
-	printStatus "Removing blend file for '${blendName}' from Elevage... "
-	if rm -rf "${blendDirectory}"
-	then
-		echoStatus "done"
-	
-	else
-		echoStatus "ERROR"
-		return 82
-	fi
-	
-	return 0
-}
 
-
+#Call `checkDifferent` for each input blend
 command_update()
 {
 	ensureInstallation
 	
+	#Don't attempt an update if no blends installed
 	installed="$(command_list)"
 	if [ "${installed}" = "" ]
 	then
@@ -632,8 +746,10 @@ command_update()
 		return 0
 	fi
 	
+	#Call `checkDifferent` for each input blend, matched against the local (installed) blends
 	forEachLocalBlend "checkDifferent" "${installed}"
 	
+	#If nothing updated, return a status message
 	if [ "${updated}" = "false" ]
 	then
 		catStatus "All blends up-to-date"
@@ -642,8 +758,10 @@ command_update()
 	return 0
 }
 
+#Compare the stored blend against that in the taps, and print its name if changed
 checkDifferent()
 {
+	#Set some initial variables to prevent duplication
 	blendName="${1}"
 	
 	elevageDirectory="${blendRoot}/${1}"
@@ -652,6 +770,7 @@ checkDifferent()
 	tapPath="${2}"
 	tapFile="${tapPath}.${blendFileSuffix}"
 	
+	#If the tap path is empty, it means that the upstream blend was removed, so print a message to that effect
 	if [ "${tapPath}" = "" ]
 	then
 		echo "Blend '${blendName}' has been removed in the upstream tap" 1>&2
@@ -660,11 +779,13 @@ checkDifferent()
 		return 0
 	fi
 	
+	#Compare the hashes of the two blend files
 	elevageHash="$( shasum --portable --algorithm 512256 "${elevageFile}" | awk '{print $1}')"
 	tapHash="$(shasum --portable --algorithm 512256 "${tapFile}" | awk '{print $1}')"
 	
 	if [ "${elevageHash}" != "${tapHash}" ]
 	then
+		#Print the blend name and set the updated flag to true if the hashes don't match (i.e. there was an upgrade)
 		updated="true"
 		echo "${blendName}"
 	fi
@@ -673,10 +794,12 @@ checkDifferent()
 }
 
 
+#Run `upgradeBlend` for each blend, either from input or all installed
 command_upgrade()
 {
 	ensureInstallation
 	
+	#Don't attempt upgrade if no blends installed
 	installed="$(command_list)"
 	if [ "${installed}" = "" ]
 	then
@@ -684,11 +807,12 @@ command_upgrade()
 		return 0
 	fi
 	
-	
+	#If no arguments passed, upgrade all installed blends
 	if [ "${#}" = "0" ]
 	then
 		forEachLocalBlend "upgradeBlend" "${installed}"
 	
+	#If arguments passed, upgrade just those
 	else
 		forEachLocalBlend "upgradeBlend" "${@}"
 	fi
@@ -696,8 +820,10 @@ command_upgrade()
 	return 0
 }
 
+#Use `brew bundle` to upgrade outdated blends
 upgradeBlend()
 {
+	#If the blend has not changed, don't upgrade it
 	blendName="${1}"
 	tapBlendPath="${2}"
 	if [ "$(checkDifferent "${blendName}" "${tapBlendPath}")" = "" ]
@@ -706,9 +832,11 @@ upgradeBlend()
 	fi
 	
 	
+	#Initialize some variables for the paths to the blends
 	blendDirectory="${blendRoot}/${blendName}"
 	elevageFile="${blendDirectory}/${blendName}.${blendFileSuffix}"
 	
+	#Remove the existing Elevage file, and copy the new blend to Elevage
 	printStatus "Replacing copy of blend '${blendName}' in Elevage... "
 	if rm "${elevageFile}" && cp "${tapBlendPath}.${blendFileSuffix}" "${elevageFile}"
 	then
@@ -719,11 +847,14 @@ upgradeBlend()
 		return 101
 	fi
 	
+	
+	#Upgrade blend using `brew-bundle`
 	echoStatus "Using brew-bundle to upgrade blend '${blendName}'..."
 	if brew bundle --file="${elevageFile}"
 	then
 		echoStatus "Blend '${blendName}' successfully upgraded"
 	
+	#On failure, print error message
 	else
 		echoStatus "ERROR upgrading blend '${blendName}'"
 		return 102
