@@ -643,13 +643,13 @@ command_upgrade()
 	
 	if [ "${#}" = "0" ]
 	then
-		upgrade="$(command_list)"
+		forEachBlend "upgradeBlend" "$(command_list)"
 	
 	else
-		upgrade="${@}"
+		forEachBlend "upgradeBlend" "${@}"
 	fi
 	
-	forEachBlend "upgradeBlend" "${upgrade}"
+	return 0
 }
 
 upgradeBlend()
