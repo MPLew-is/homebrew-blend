@@ -55,6 +55,8 @@ The script is written to be as POSIX-compliant as possible, but if you find any 
 
 - `brew blend install` installs a given blend
 
+	- Supports blends both in the form "{blend}" and "{user}/{repository}/{blend}"
+
 - `brew blend uninstall` uninstalls a given blend
 
 	- If the `--blend-only` flag is provided, only the blend (and none of its components) will be removed
