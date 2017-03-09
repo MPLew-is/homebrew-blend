@@ -154,6 +154,8 @@ Hi, I'm Mike, an IT administrator and full-stack developer, dealing primarily wi
 
 - [ ] Allow uninstallation of blend without uninstalling its components
 
+- [ ] Handle upstream blend deletion
+
 - [ ] Add `man` page/other documentation
 
 - [ ] Flesh out code comments
