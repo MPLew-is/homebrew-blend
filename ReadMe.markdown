@@ -6,22 +6,22 @@
 
 ## What? ##
 
-This is a `homebrew` external command, implementing meta-formulae called `Blends`
+This is a `homebrew` external command, implementing meta-formulae called `Blends`.
 
-This is implemented as what amounts to a wrapper around [`brew-bundle`](https://github.com/Homebrew/homebrew-bundle), which performs the actual installation of formulae; as such, any valid `Brewfile` is a valid `Blend`
+This is implemented as what amounts to a wrapper around [`brew-bundle`](https://github.com/Homebrew/homebrew-bundle), which performs the actual installation of formulae; as such, any valid `Brewfile` is a valid `Blend`.
 
-Please note that this is **experimental**, and may accidentally install or uninstall your homebrew formulae
+Please note that this is **experimental**, and may accidentally install or uninstall your homebrew formulae.
 
 Please feel free to file an issue if you find it, and I'll work to get it fixed as soon as I can.
 
 
 ## Why? ##
 
-`homebrew` does not have any meta-formula functionality built in, which would allow for the easy installation of related formulae, such as a MAMP stack, with one command, instead of needing to install each dependency separately
+`homebrew` does not have any meta-formula functionality built in, which would allow for the easy installation of related formulae, such as a MAMP stack, with one command, instead of needing to install each dependency separately.
 
-`brew-bundle` is an excellent way to get the dependencies specific to a project, but it does not have any management of installed formulae other than the `Brewfile` itself
+`brew-bundle` is an excellent way to get the dependencies specific to a project, but it does not have any management of installed formulae other than the `Brewfile` itself.
 
-Essentially, I wanted to take the ideas from `brew-bundle` and make it as `homebrew`-like as possible, including having a way to install formulae from anywhere (instead of needing to point to a specific `Brewfile`), and uninstalling formulae that have been installed
+Essentially, I wanted to take the ideas from `brew-bundle` and make it as `homebrew`-like as possible, including having a way to install formulae from anywhere (instead of needing to point to a specific `Brewfile`), and uninstalling formulae that have been installed.
 
 
 ## How? ##
