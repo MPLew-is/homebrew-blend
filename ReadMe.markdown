@@ -152,7 +152,9 @@ Hi, I'm Mike, an IT administrator and full-stack developer, dealing primarily wi
 
 ## To do/known issues ##
 
-- [ ] Allow uninstallation of blend without uninstalling its components
+- [x] Allow uninstallation of blend without uninstalling its components
+
+	- Implemented with `uninstall --blend-only`
 
 - [ ] Handle upstream blend deletion
 

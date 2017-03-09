@@ -95,7 +95,8 @@ printUsageMessage()
 		List:               brew blend list
 		Info:               brew blend info {NAME} [{NAME}...]
 		Search:             brew blend search {NAME}
-		Installation:       brew blend (install | uninstall) {NAME} [{NAME}...]
+		Installation:       brew blend install {NAME} [{NAME}...]
+		Uninstallation:     brew blend uninstall [--blend-only] {NAME} [{NAME}...]
 		Updating:           brew blend update
 		Upgrading:          brew blend upgrade [{NAME}...}
 		Help:               brew blend help
@@ -129,6 +130,7 @@ command_help()
 		    "search":           search for the given blend name
 		    "install":          install the given blend name
 		    "uninstall":        uninstall the given blend name
+		                            if the "--blend-only" flag is given, only the blend is removed, not any of the component formulae
 		    "update":           check all installed blends for updates, and print the names of those that need to be upgraded
 		    "upgrade":          upgrade all outdated blends
 		
@@ -461,7 +463,14 @@ command_uninstall_blend()
 {
 	ensureInstallation
 	
-	forEachBlend "uninstallBlend" "${@}"
+	if [ "${1}" = "--blend-only" ]
+	then
+		shift
+		forEachBlend "uninstallBlendFile" "${@}"
+	
+	else
+		forEachBlend "uninstallBlend" "${@}"
+	fi
 	
 	return 0
 }
@@ -532,16 +541,7 @@ uninstallBlend()
 	}
 	
 	
-	printStatus "Removing blend file from Elevage... "
-	if rm -rf "${blendDirectory}"
-	then
-		echoStatus "done"
-	
-	else
-		echoStatus "ERROR"
-		return 82
-	fi
-	
+	uninstallBlendFile "${blendName}"
 	return 0
 }
 
@@ -572,6 +572,24 @@ uninstallFormulae()
 			fi
 		done
 	}
+}
+
+uninstallBlendFile()
+{
+	blendName="${1}"
+	blendDirectory="${blendRoot}/${blendName}"
+	
+	printStatus "Removing blend file for '${blendName}' from Elevage... "
+	if rm -rf "${blendDirectory}"
+	then
+		echoStatus "done"
+	
+	else
+		echoStatus "ERROR"
+		return 82
+	fi
+	
+	return 0
 }
 
 
