@@ -158,7 +158,9 @@ Hi, I'm Mike, an IT administrator and full-stack developer, dealing primarily wi
 
 	- Implemented with `uninstall --blend-only`
 
-- [ ] Handle upstream blend deletion
+- [x] Handle upstream blend deletion
+
+	- Implemented with `forEachLocalBlend` function, which doesn't fail when the tap-blend doesn't exist
 
 - [ ] Add `man` page/other documentation
 

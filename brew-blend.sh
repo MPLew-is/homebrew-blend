@@ -364,6 +364,34 @@ forEachBlend()
 	return 0
 }
 
+forEachLocalBlend()
+{
+	forEachCommand="${1}"
+	shift
+	
+	while [ "${#}" -gt "0" ]
+	do
+		blendName="${1}"
+		
+		if [ ! -d "${blendRoot}/${blendName}" ]
+		then
+			catStatus "Blend '${blendName}' not found" 1>&2
+			return 4
+		fi
+		
+		if ! blendPath="$(getBlendPath "${blendName}")"
+		then
+			blendPath=""
+		fi
+		
+		"${forEachCommand}" "${blendName}" "${blendPath}"
+		
+		shift
+	done
+	
+	return 0
+}
+
 
 command_info()
 {
@@ -466,10 +494,10 @@ command_uninstall_blend()
 	if [ "${1}" = "--blend-only" ]
 	then
 		shift
-		forEachBlend "uninstallBlendFile" "${@}"
+		forEachLocalBlend "uninstallBlendFile" "${@}"
 	
 	else
-		forEachBlend "uninstallBlend" "${@}"
+		forEachLocalBlend "uninstallBlend" "${@}"
 	fi
 	
 	return 0
@@ -604,7 +632,7 @@ command_update()
 		return 0
 	fi
 	
-	forEachBlend "checkDifferent" "${installed}"
+	forEachLocalBlend "checkDifferent" "${installed}"
 	
 	if [ "${updated}" = "false" ]
 	then
@@ -624,6 +652,14 @@ checkDifferent()
 	tapPath="${2}"
 	tapFile="${tapPath}.${blendFileSuffix}"
 	
+	if [ "${tapPath}" = "" ]
+	then
+		echo "Blend '${blendName}' has been removed in the upstream tap" 1>&2
+		echo "This blend will no longer update, but you won't be affected otherwise" 1>&2
+		echo "You can safely remove this blend with 'brew blend uninstall --blend-only ${blendName}' without affecting any existing formulae" 1>&2
+		return 0
+	fi
+	
 	elevageHash="$( shasum --portable --algorithm 512256 "${elevageFile}" | awk '{print $1}')"
 	tapHash="$(shasum --portable --algorithm 512256 "${tapFile}" | awk '{print $1}')"
 	
@@ -641,12 +677,20 @@ command_upgrade()
 {
 	ensureInstallation
 	
+	installed="$(command_list)"
+	if [ "${installed}" = "" ]
+	then
+		catStatus "No blends installed"
+		return 0
+	fi
+	
+	
 	if [ "${#}" = "0" ]
 	then
-		forEachBlend "upgradeBlend" "$(command_list)"
+		forEachLocalBlend "upgradeBlend" "${installed}"
 	
 	else
-		forEachBlend "upgradeBlend" "${@}"
+		forEachLocalBlend "upgradeBlend" "${@}"
 	fi
 	
 	return 0
