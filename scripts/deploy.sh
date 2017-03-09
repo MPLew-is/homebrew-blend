@@ -20,7 +20,7 @@ tapFormula="brew-blend"
 
 
 #Get current tagged release
-tag="git describe --tags"
+tag="$(git describe --tags)"
 
 
 #Change into the home directory
