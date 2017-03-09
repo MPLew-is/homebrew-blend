@@ -91,7 +91,7 @@ More information is available by running `brew blend help` once installed
 
 ```shell
 brew tap MPLew-is/experimental
-brew install brew-blend
+brew install --HEAD brew-blend
 brew blend install --self
 ```
 
@@ -127,7 +127,7 @@ In order to find formulae to install, `brew-blend` searches all of your current 
 
 ## Summary (TL;DR) ##
 
-1. `brew install brew-blend`
+1. `brew install --HEAD brew-blend`
 
 2. `brew blend install --self`
 
