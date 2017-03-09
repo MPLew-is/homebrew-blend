@@ -62,7 +62,7 @@ sed -i'' -e "s#url \"${repositoryPrefix}/[^/]*.tar.gz\"\$#url \"${archiveURL}\"#
 sed -i'' -e "s/sha256 \"[a-f0-9]*\"\$/sha256 \"${tagHash}\"/g" "${tapFormula}.rb"
 
 #Commit and push the auto-deployment
-git commit --all --message="Upgrade 'brew-blend' to '${tag}' (CircleCI auto-deploy)"
+git commit --all --message="Upgrade 'brew-blend' to '${tag}' (CircleCI auto-deploy)" --author="Mike Lewis <mike@mplew.is>"
 git push
 
 
