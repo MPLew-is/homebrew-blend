@@ -164,6 +164,6 @@ Hi, I'm Mike, an IT administrator and full-stack developer, dealing primarily wi
 
 - [x] Flesh out code comments
 
-- [ ] Clean up some variable naming schemes
+- [x] Clean up some variable naming schemes
 
 - [ ] Integrate with CI

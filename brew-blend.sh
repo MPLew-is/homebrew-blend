@@ -497,7 +497,7 @@ installBlend()
 	#Set some initial variables for easy reference
 	blendName="${1}"
 	blendDirectory="${blendRoot}/${blendName}"
-	tapBlendPath="${2}"
+	blendTapPath="${2}"
 	
 	#Check if formulae is already installed; don't install if so
 	if [ -d "${blendDirectory}" ]
@@ -515,7 +515,7 @@ installBlend()
 		echoStatus "done"
 		printStatus "Making a copy of blend '${blendName}' in Elevage... "
 		
-		if cp "${tapBlendPath}.${blendFileSuffix}" "${blendDirectory}/${blendName}.${blendFileSuffix}"
+		if cp "${blendTapPath}.${blendFileSuffix}" "${blendDirectory}/${blendName}.${blendFileSuffix}"
 		then
 			echoStatus "done"
 		
@@ -764,14 +764,14 @@ checkDifferent()
 	#Set some initial variables to prevent duplication
 	blendName="${1}"
 	
-	elevageDirectory="${blendRoot}/${1}"
-	elevageFile="${elevageDirectory}/${blendName}.${blendFileSuffix}"
+	blendDirectory="${blendRoot}/${1}"
+	blendFile="${blendDirectory}/${blendName}.${blendFileSuffix}"
 	
-	tapPath="${2}"
-	tapFile="${tapPath}.${blendFileSuffix}"
+	blendTapPath="${2}"
+	blendTapFile="${blendTapPath}.${blendFileSuffix}"
 	
 	#If the tap path is empty, it means that the upstream blend was removed, so print a message to that effect
-	if [ "${tapPath}" = "" ]
+	if [ "${blendTapPath}" = "" ]
 	then
 		echo "Blend '${blendName}' has been removed in the upstream tap" 1>&2
 		echo "This blend will no longer update, but you won't be affected otherwise" 1>&2
@@ -780,10 +780,10 @@ checkDifferent()
 	fi
 	
 	#Compare the hashes of the two blend files
-	elevageHash="$( shasum --portable --algorithm 512256 "${elevageFile}" | awk '{print $1}')"
-	tapHash="$(shasum --portable --algorithm 512256 "${tapFile}" | awk '{print $1}')"
+	blendHash="$( shasum --portable --algorithm 512256 "${blendFile}" | awk '{print $1}')"
+	tapHash="$(shasum --portable --algorithm 512256 "${blendTapFile}" | awk '{print $1}')"
 	
-	if [ "${elevageHash}" != "${tapHash}" ]
+	if [ "${blendHash}" != "${tapHash}" ]
 	then
 		#Print the blend name and set the updated flag to true if the hashes don't match (i.e. there was an upgrade)
 		updated="true"
@@ -825,8 +825,8 @@ upgradeBlend()
 {
 	#If the blend has not changed, don't upgrade it
 	blendName="${1}"
-	tapBlendPath="${2}"
-	if [ "$(checkDifferent "${blendName}" "${tapBlendPath}")" = "" ]
+	blendTapPath="${2}"
+	if [ "$(checkDifferent "${blendName}" "${blendTapPath}")" = "" ]
 	then
 		return 0
 	fi
@@ -834,11 +834,11 @@ upgradeBlend()
 	
 	#Initialize some variables for the paths to the blends
 	blendDirectory="${blendRoot}/${blendName}"
-	elevageFile="${blendDirectory}/${blendName}.${blendFileSuffix}"
+	blendFile="${blendDirectory}/${blendName}.${blendFileSuffix}"
 	
 	#Remove the existing Elevage file, and copy the new blend to Elevage
 	printStatus "Replacing copy of blend '${blendName}' in Elevage... "
-	if rm "${elevageFile}" && cp "${tapBlendPath}.${blendFileSuffix}" "${elevageFile}"
+	if rm "${blendFile}" && cp "${blendTapPath}.${blendFileSuffix}" "${blendFile}"
 	then
 		echoStatus "done"
 		
@@ -850,7 +850,7 @@ upgradeBlend()
 	
 	#Upgrade blend using `brew-bundle`
 	echoStatus "Using brew-bundle to upgrade blend '${blendName}'..."
-	if brew bundle --file="${elevageFile}"
+	if brew bundle --file="${blendFile}"
 	then
 		echoStatus "Blend '${blendName}' successfully upgraded"
 	
