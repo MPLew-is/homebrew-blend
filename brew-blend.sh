@@ -92,7 +92,7 @@ catStatus()
 printUsageMessage()
 {
 	cat <<-EOF
-		Initial setup:      brew blend (install | uninstall) --self
+		Initial setup:      brew blend (install-self | uninstall-self)
 		Check installation: brew blend check
 		List:               brew blend list
 		Info:               brew blend info {NAME} [{NAME}...]
@@ -124,9 +124,9 @@ command_help()
 		Commands:
 		    "help":             print this help message
 		    "check":            check if brew-blend has been successfully installed
-		    "install --self":   create the directories needed for brew-blend to run
+		    "install-self":     create the directories needed for brew-blend to run
 		                            this will be performed automatically when you run brew-blend
-		    "uninstall --self": remove the directories created by "install --self"
+		    "uninstall-self":   remove the directories created by "install-self"
 		    "list":             list all installed blends
 		    "info":             print information about the given blend name
 		    "search":           search for the given blend name
@@ -155,7 +155,7 @@ command_help()
 }
 
 
-#Check if the "install --self" command has been run for this version, failing if not
+#Check if the "install-self" command has been run for this version, failing if not
 command_check()
 {
 	if [ ! -d "${blendRoot}" ]
@@ -170,24 +170,17 @@ command_check()
 }
 
 
-#Call correct install sub-command depending on whether this is a self-install or not
-command_install()
-{
-	if [ "${#}" = "1" ] && [ "${1}" = "--self" ]
-	then
-		command_install_self
-		return 0
-	
-	else
-		command_install_blend "${@}"
-		return 0
-	fi
-}
-
-
 #Create blend storage directory and set its permissions
 command_install_self()
 {
+	#Prevent command from executing if any arguments are provided
+	if [ "${#}" != "0" ]
+	then
+		echo "Command install-self does not take any arguments" 1>&2
+		return 32
+	fi
+	
+	
 	#Check if already installed, and return if so, as another installation is unnecessary
 	if quiet="true" command_check
 	then
@@ -243,24 +236,17 @@ command_install_self()
 }
 
 
-#Call correct uninstall sub-command depending on whether this is a self-uninstall or not
-command_uninstall()
-{
-	if [ "${#}" = "1" ] && [ "${1}" = "--self" ]
-	then
-		command_uninstall_self
-		return 0
-	
-	else
-		command_uninstall_blend "${@}"
-		return 0
-	fi
-}
-
-
 #Remove blend storage directory created by command_install_self
 command_uninstall_self()
 {
+	#Prevent command from executing if any arguments are provided
+	if [ "${#}" != "0" ]
+	then
+		echo "Command uninstall-self does not take any arguments" 1>&2
+		return 32
+	fi
+	
+	
 	#If brew-blend is not installed, don't run the uninstallation
 	if ! quiet="true" command_check
 	then
@@ -503,7 +489,7 @@ command_search()
 
 
 #Call installBlend for each input blend name
-command_install_blend()
+command_install()
 {
 	ensureInstallation
 	
@@ -604,7 +590,7 @@ removeBlendDirectory()
 
 
 #Call `uninstallBlend` or `uninstallBlendFile` for each input blend name, depending on the presence of the `--blend-only` flag
-command_uninstall_blend()
+command_uninstall()
 {
 	ensureInstallation
 	
@@ -886,9 +872,10 @@ upgradeBlend()
 
 
 #Parse requested command, and call the corresponding function with the remaining arguments
-if [ "${1}" = "help" ] || [ "${1}" = "check" ] || [ "${1}" = "install" ] || [ "${1}" = "uninstall" ] || [ "${1}" = "list" ] || [ "${1}" = "info" ] || [ "${1}" = "search" ] || [ "${1}" = "update" ] || [ "${1}" = "upgrade" ]
+if [ "${1}" = "help" ] || [ "${1}" = "check" ] || [ "${1}" = "install-self" ] || [ "${1}" = "uninstall-self" ] || [ "${1}" = "list" ] || [ "${1}" = "info" ] || [ "${1}" = "search" ] || [ "${1}" = "install" ] || [ "${1}" = "uninstall" ] || [ "${1}" = "update" ] || [ "${1}" = "upgrade" ]
 then
-	commandFunction="command_${1}"
+	#Get the command function name, and replace all dashes with underscores
+	commandFunction="$(echo "command_${1}" | sed -e 's/-/_/g')"
 	
 	shift
 	"${commandFunction}" "${@}"

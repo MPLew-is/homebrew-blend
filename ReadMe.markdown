@@ -41,9 +41,9 @@ The script is written to be as POSIX-compliant as possible, but if you find any 
 
 - `brew blend check` checks that `brew blend` has been installed, exiting with a non-zero status if not
 
-- `brew blend install --self` creates and sets permissions for the blends directory
+- `brew blend install-self` creates and sets permissions for the blends directory
 
-- `brew blend uninstall --self` removes the directories used by `brew-blend`
+- `brew blend uninstall-self` removes the directories used by `brew-blend`
 
 	- Please note that this does not uninstall any of the blends installed, but will delete the files used to manage those blends
 
@@ -96,7 +96,7 @@ More information is available by running `brew blend help` once installed
 ```shell
 brew tap MPLew-is/experimental
 brew install --HEAD brew-blend
-brew blend install --self
+brew blend install-self
 ```
 
 
@@ -115,7 +115,7 @@ To uninstall `brew-blend`, you have two choices:
 
 After choosing an option, run:
 
-1. `brew blend uninstall --self` to remove the directories used by `brew-blend` to manage installations
+1. `brew blend uninstall-self` to remove the directories used by `brew-blend` to manage installations
 
 2. `brew uninstall brew-blend` to uninstall `brew-blend` itself from your system
 
@@ -133,7 +133,7 @@ In order to find formulae to install, `brew-blend` searches all of your current 
 
 1. `brew install --HEAD brew-blend`
 
-2. `brew blend install --self`
+2. `brew blend install-self`
 
 3. `brew blend install {BLEND}`
 
