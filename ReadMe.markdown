@@ -145,11 +145,9 @@ You can append as many files of one type as you like to almost all commands (exc
 You can edit the script however works best for you. I've tried my best to put everything that could be considered "configuration" in a group of variables at the top of the file, so you can, for instance, easily change the directory from `Elevage` to whatever you want.
 
 
-
 ## Who? ##
 
 Hi, I'm Mike, an IT administrator and full-stack developer, dealing primarily with LAMP-based stacks. Using meta-formulae will drastically speed up my management of both development and non-development machines, so here we are.
-
 
 
 ## To do/known issues ##
