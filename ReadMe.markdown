@@ -1,7 +1,7 @@
 # brew-blend: meta-formulae for homebrew #
 
 
-CircleCI: [![CircleCI build status](https://circleci.com/gh/MPLew-is/homebrew-blend.svg?style=svg)](https://circleci.com/gh/MPLew-is/homebrew-blend)
+[![CircleCI build status](https://circleci.com/gh/MPLew-is/homebrew-blend.svg?style=svg)](https://circleci.com/gh/MPLew-is/homebrew-blend)
 
 ## What? ##
 
