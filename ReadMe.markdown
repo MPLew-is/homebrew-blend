@@ -125,7 +125,7 @@ Inside the Elevage are individual directories for each blend installed. As of no
 In order to find formulae to install, `brew-blend` searches all of your current taps (with pinned taps searched first) for files in a directory with the name of `BlendFormula`. It searches these directories for files with extensions `.brewfile` and `.text`, which contain the blend's components and information, respectively. The `.text` file is what is output to the terminal when a user runs `brew bundle info`. Having two files was chosen to allow perfect compatibility with `brew-bundle`, so that existing `Brewfiles` can be copied or even symlinked to become blends.
 
 
-### Summary (TL;DR) ###
+## Summary (TL;DR) ##
 
 1. `brew install brew-blend`
 
@@ -134,8 +134,6 @@ In order to find formulae to install, `brew-blend` searches all of your current 
 3. `brew blend install {BLEND}`
 
 4. That's it!
-
-
 
 
 ### Random tips ###
