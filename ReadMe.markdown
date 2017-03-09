@@ -153,24 +153,3 @@ You can edit the script however works best for you. I've tried my best to put ev
 ## Who? ##
 
 Hi, I'm Mike, an IT administrator and full-stack developer, dealing primarily with LAMP-based stacks. Using meta-formulae will drastically speed up my management of both development and non-development machines, so here we are.
-
-
-## To do/known issues ##
-
-- [x] Allow uninstallation of blend without uninstalling its components
-
-	- Implemented with `uninstall --blend-only`
-
-- [x] Handle upstream blend deletion
-
-	- Implemented with `forEachLocalBlend` function, which doesn't fail when the tap-blend doesn't exist
-
-- [ ] Add `man` page/other documentation
-
-- [x] Flesh out code comments
-
-- [x] Clean up some variable naming schemes
-
-- [x] Integrate with CI
-
-- [ ] Output new formula when running `brew blend update`
