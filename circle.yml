@@ -21,8 +21,8 @@ dependencies:
 
 test:
     override:
-        #Run shellcheck on the project's main script
-        - shellcheck ./brew-blend.sh
+        #Run shellcheck on all scripts in the root directory
+        - shellcheck *.sh
     
 
 deployment:
