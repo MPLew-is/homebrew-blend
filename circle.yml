@@ -1,7 +1,4 @@
 machine:
-    timezone:
-        America/New_York
-    
     environment:
         #Force all scripts to be automated and not request user input
         DEBIAN_FRONTEND: noninteractive
