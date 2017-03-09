@@ -39,20 +39,21 @@ tagHash="$(shasum --portable --algorithm 256 "archive.tar.gz" | awk '{print $1}'
 rm "archive.tar.gz"
 
 
-#If the tap has been cached, update it from its remote
-if [ -d "brew-tap" ]
+#If the tap has not been cached, clone it
+if [ ! -d "brew-tap" ]
 then
-	cd "brew-tap/Formula"
-	
-	git fetch
-	git pull
-
-#If not, clone it and change directories into it
-else
 	git clone "git@${tapHost}:${tapUser}/${tapRepository}.git" "brew-tap"
-	
-	cd "brew-tap/Formula"
 fi
+
+#Change directories into the tap, then initialize git settings and make sure it's up-to-date
+cd "brew-tap/Formula"
+
+git init
+git config user.name "homebrew-experimental (CircleCI)"
+git config user.email "mike@mplew.is"
+
+git fetch
+git pull
 
 
 #Replace the old archive URL with the new archive URL
@@ -62,7 +63,7 @@ sed -i'' -e "s#url \"${repositoryPrefix}/[^/]*.tar.gz\"\$#url \"${archiveURL}\"#
 sed -i'' -e "s/sha256 \"[a-f0-9]*\"\$/sha256 \"${tagHash}\"/g" "${tapFormula}.rb"
 
 #Commit and push the auto-deployment
-git commit --all --message="Upgrade 'brew-blend' to '${tag}' (CircleCI auto-deploy)" --author="Mike Lewis <mike@mplew.is>"
+git commit --all --message="Upgrade 'brew-blend' to '${tag}' (CircleCI auto-deploy)"
 git push
 
 
