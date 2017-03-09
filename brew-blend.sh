@@ -492,7 +492,11 @@ command_search()
 	xargs -n 1 -I_path -- find "_path/${blendFormulaPath}" -name "*${blendName}*.${blendFileSuffix}" 2>/dev/null | \
 	
 	#Strip the initial path prefix, the Elevage directory prefix, and the file suffix from the file path to get the fully-qualified blend name
-	sed -e "s:^${HOMEBREW_PREFIX}/Homebrew/Library/Taps/::g" -e "s:${blendFormulaPath}/::g" -e "s:.${blendFileSuffix}\$::g"
+	sed \
+		-e "s:^${HOMEBREW_PREFIX}/Homebrew/Library/Taps/::g" \
+		-e "s:${blendFormulaPath}/::g" \
+		-e "s:.${blendFileSuffix}\$::g" \
+		-e 's:/homebrew-\([^/]*\)/:/\1/:g'
 	
 	return 0
 }
