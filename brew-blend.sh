@@ -637,7 +637,7 @@ uninstallBlend()
 	storedLeaves="$(brew leaves)"
 	
 	#Do a first-pass at uninstalling leaf formulae
-	uninstallFormulae "${blendName}"
+	uninstallComponentType "${blendName}" "brew" "uninstallFormula" "checkFormulaDependency"
 	
 	#While the leaf formulae keep changing, continue running through the uninstallation
 	#This is done to allow the uninstallation of chained formulae that are not used anywhere else
@@ -645,109 +645,101 @@ uninstallBlend()
 	leaves="$(brew leaves)"
 	while [ "${leaves}" != "${storedLeaves}" ]
 	do
-		uninstallFormulae "${blendName}"
+		uninstallComponentType "${blendName}" "brew" "uninstallFormula" "checkFormulaDependency"
 		storedLeaves="${leaves}"
 		leaves="$(brew leaves)"
 	done
 	
 	
-	#Search for the 'cask' type string in the blend file
-	grep "^cask" "${blendDirectory}/${blendName}.${blendFileSuffix}" | \
+	#Uninstall all casks in the blend, ignoring dependencies
+	uninstallComponentType "${blendName}" "cask" "uninstallTap" "false"
 	
-	#Get just the cask type and name, so that different arguments between blends do not register as different casks
-	awk '{print $1" "$2}' | \
-	
-	#Remove the trailing comma, if present
-	sed -e 's/,$//g' | \
-	
-	{
-		#Iterate through each cask, uninstalling it if not found in any other blends
-		while read -r cask
-		do
-			#Search all blends except the one being uninstalled for the cask intallation string, skipping this cask if found
-			if grep --quiet --recursive --include="*.brewfile" --exclude-dir="${blendDirectory}" "${cask}" "${blendRoot}"
-			then
-				continue
-			fi
-			
-			#If not found, get just the cask name from the "cask '{user}/{repo}'"
-			caskName="$(echo "${cask}" | awk '{print $2}' | sed -e "s/^'//g" -e "s/'$//g")"
-			
-			#Uninstall the cask
-			brew cask uninstall "${caskName}"
-		done
-	}
-	
-	
-	#Search for the 'tap' type string in the blend file
-	grep "^tap" "${blendDirectory}/${blendName}.${blendFileSuffix}" | \
-	
-	#Get just the tap type and name, so that different arguments between blends do not register as different taps
-	awk '{print $1" "$2}' | \
-	
-	#Remove the trailing comma, if present
-	sed -e 's/,$//g' | \
-	
-	{
-		#Iterate through each tap, untapping it if not found in any other blends
-		while read -r tap
-		do
-			#Search all blends except the one being uninstalled for the cask intallation string, skipping this tap if found
-			if grep --quiet --recursive --include="*.brewfile" --exclude-dir="${blendDirectory}" "${tap}" "${blendRoot}"
-			then
-				continue
-			fi
-			
-			#If not found, get just the tap name from the "tap '{user}/{repo}'" format
-			tapName="$(echo "${tap}" | awk '{print $2}' | sed -e "s/^'//g" -e "s/'$//g")"
-			
-			#If no formulae are installed from the given tap, untap it
-			if ! ( brew list --full-name | grep --quiet "${tapName}" )
-			then
-				brew untap "${tapName}"
-			fi
-		done
-	}
+	#Untap all "leaf" taps
+	uninstallComponentType "${blendName}" "tap" "uninstallTap" "checkTapDependency"
 	
 	#Remove the actual blend directory
-	removeBlendDirectory "${blendName}"
+	#removeBlendDirectory "${blendName}"
 	return 0
 }
 
-#Uninstall normal homebrew formulae
-#This is a separate function to allow multiple calls as `brew leaves` is monitored
-uninstallFormulae()
+#Uninstall a formula with an input name
+uninstallFormula()
 {
-	#Set variables for the blend name and directory
+	name="${1}"
+	brew uninstall "${name}"
+}
+
+#Check if the formula can be uninstalled, returning failure code if not
+#This leverages brew leaves to determine if the formula can be uninstalled without causing issues for other formulae
+checkFormulaDependency()
+{
+	name="${1}"
+	brew leaves | grep --quiet "^${name}\$"
+}
+
+#Uninstall a cask with an input name
+uninstallCask()
+{
+	name="${1}"
+	brew cask uninstall "${name}"
+}
+
+#Uninstall a tap with an input name
+uninstallTap()
+{
+	name="${1}"
+	brew untap "${name}"
+}
+
+#Check if the tap can be uninstalled, returning failure code if not
+#This leverages brew list to determine if there are any formulae installed that are part of the tap
+checkTapDependency()
+{
+	name="${1}"
+	! brew list --full-name | grep --quiet "^${name}/"
+}
+
+#Find all components of the input type, and iterate through each, installing if possible
+uninstallComponentType()
+{
+	#Store arguments in named variables for easy reference
 	blendName="${1}"
+	componentType="${2}"
+	uninstall="${3}"
+	dependencyCheck="${4}"
+	
+	#Set a variable for the blend directory
 	blendDirectory="${blendRoot}/${blendName}"
 	
-	#Search for the 'brew' type string in the blend file
-	grep "^brew" "${blendDirectory}/${blendName}.${blendFileSuffix}" | \
+	#Search for the input type string in the blend file
+	grep "^${componentType}" "${blendDirectory}/${blendName}.${blendFileSuffix}" | \
 	
-	#Get just the formula type and name, so that different arguments between blends do not register as different formulae
+	#Get just the component type and name, so that different arguments between blends do not register as different components
+	#This takes something like "tap 'telemachus/brew', 'https://telemachus@bitbucket.org/telemachus/brew.git'" and outputs just "tap 'telemachus/brew',"
 	awk '{print $1" "$2}' | \
 	
 	#Remove the trailing comma, if present
+	#Outputs something like "tap 'telemachus/brew'"
 	sed -e 's/,$//g' | \
 	
 	{
-		#Iterate through each formula, uninstalling it if not present in other blends, or depended on by other formulae
-		while read -r formula
+		#Iterate through each component, determine if it should be uninstalled, then uninstall it if so
+		while read -r component
 		do
-			#Search all blends except the one being uninstalled for the cask intallation string, skipping this formula if found
-			if grep --quiet --recursive --include="*.brewfile" --exclude-dir="${blendDirectory}" "${formula}" "${blendRoot}"
+			#Search all blends except the one being uninstalled for the component intallation string, skipping this component if found
+			if grep --quiet --recursive --include="*.brewfile" --exclude-dir="${blendDirectory}" "${component}" "${blendRoot}"
 			then
 				continue
 			fi
 			
-			#If not found, get just the formula name from the "brew '{user}/{repo}'" format
-			formulaName="$(echo "${formula}" | awk '{print $2}' | sed -e "s/^'//g" -e "s/'$//g")"
+			#If not found, get just the component name from the "{type} '{name}'" format
+			#Outputs something like "telemachus/brew"
+			componentName="$(echo "${component}" | awk '{print $2}' | sed -e "s/^'//g" -e "s/'$//g")"
 			
-			#If the formula isn't depended on by another (i.e. is a "leaf"), uninstall it
-			if ( brew leaves | grep --quiet "^${formulaName}\$" )
+			#If no formulae are installed from the given component, run the input uninstallation command
+			if "${dependencyCheck}" "${componentName}"
 			then
-				brew uninstall "${formulaName}" || true
+				"${uninstall}" "${componentName}"
 			fi
 		done
 	}
