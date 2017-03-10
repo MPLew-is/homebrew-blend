@@ -741,7 +741,7 @@ uninstallComponentType()
 			#If no formulae are installed from the given component, run the input uninstallation command
 			if "${dependencyCheck}" "${componentName}"
 			then
-				"${uninstall}" "${componentName}"
+				"${uninstall}" "${componentName}" || true
 			fi
 		done
 	}
