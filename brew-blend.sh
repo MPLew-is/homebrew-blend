@@ -100,7 +100,8 @@ catStatus()
 printUsageMessage()
 {
 	cat <<-EOF
-		Initial setup:      brew blend (install-self | uninstall-self)
+		Initial setup:      brew blend install-self
+		Complete uninstall: brew blend uninstall-self
 		Check installation: brew blend check
 		List:               brew blend list
 		Info:               brew blend info {NAME} [{NAME}...]
