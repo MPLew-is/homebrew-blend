@@ -674,7 +674,7 @@ uninstallFormula()
 checkFormulaDependency()
 {
 	name="${1}"
-	brew leaves | grep --quiet "^${name}\$"
+	test "$(brew uses --installed "${name}")" = ""
 }
 
 #Uninstall a cask with an input name
