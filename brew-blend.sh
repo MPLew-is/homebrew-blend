@@ -594,11 +594,14 @@ command_uninstall()
 {
 	ensureInstallation
 	
-	if [ "${1}" = "--blend-only" ]
+	#If the first blend name is "--blend-only", treat it as a flag and only remove the blend directory itself
+	if [ "${#}" -gt "1" ] && [ "${1}" = "--blend-only" ]
 	then
 		shift
 		forEachLocalBlend "removeBlendDirectory" "${@}"
 	
+	#Otherwise, treat all arguments as blends, and fully uninstall them
+	#This means that `brew blend uninstall --blend-only` treats '--blend-only' as a blend
 	else
 		forEachLocalBlend "uninstallBlend" "${@}"
 	fi
