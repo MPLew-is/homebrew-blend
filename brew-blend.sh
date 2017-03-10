@@ -104,7 +104,7 @@ printUsageMessage()
 		Check installation: brew blend check
 		List:               brew blend list
 		Info:               brew blend info {NAME} [{NAME}...]
-		Search:             brew blend search {NAME}
+		Search:             brew blend search [{NAME}]
 		Installation:       brew blend install {NAME} [{NAME}...]
 		Uninstallation:     brew blend uninstall [--blend-only] {NAME} [{NAME}...]
 		Updating:           brew blend update
