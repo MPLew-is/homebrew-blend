@@ -665,7 +665,7 @@ uninstallBlend()
 		while read -r cask
 		do
 			#Search all blends except the one being uninstalled for the cask intallation string, skipping this cask if found
-			if grep --quiet --recursive --exclude-dir="${blendDirectory}" "${cask}" "${blendRoot}"
+			if grep --quiet --recursive -include="*.brewfile" --exclude-dir="${blendDirectory}" "${cask}" "${blendRoot}"
 			then
 				continue
 			fi
@@ -693,7 +693,7 @@ uninstallBlend()
 		while read -r tap
 		do
 			#Search all blends except the one being uninstalled for the cask intallation string, skipping this tap if found
-			if grep --quiet --recursive --exclude-dir="${blendDirectory}" "${tap}" "${blendRoot}"
+			if grep --quiet --recursive -include="*.brewfile" --exclude-dir="${blendDirectory}" "${tap}" "${blendRoot}"
 			then
 				continue
 			fi
@@ -736,7 +736,7 @@ uninstallFormulae()
 		while read -r formula
 		do
 			#Search all blends except the one being uninstalled for the cask intallation string, skipping this formula if found
-			if grep --quiet --recursive --exclude-dir="${blendDirectory}" "${formula}" "${blendRoot}"
+			if grep --quiet --recursive -include="*.brewfile" --exclude-dir="${blendDirectory}" "${formula}" "${blendRoot}"
 			then
 				continue
 			fi
