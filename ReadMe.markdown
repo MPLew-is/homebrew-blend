@@ -97,8 +97,7 @@ More information is available by running `brew blend help` once installed
 [`homebrew`](https://github.com/Homebrew/brew) is the only supported way of installing `brew blend`. This will take care of most of the initial setup, so you can get started more quickly. Simply run the commands below to get started:
 
 ```shell
-brew tap MPLew-is/experimental
-brew install --HEAD brew-blend
+brew install MPLew-is/experimental/brew-blend
 brew blend install-self
 ```
 
