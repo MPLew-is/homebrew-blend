@@ -36,6 +36,14 @@ then
 fi
 
 
+#If homebrew prefix variable is not set but brew is in the PATH (checked above), fetch the needed value from brew itself
+#This should only ever happen during development, running the script directly without installing it
+if [ "${HOMEBREW_PREFIX}" = "" ]
+then
+	HOMEBREW_PREFIX="$(brew --prefix)"
+fi
+
+
 #Define some variables to allow for easy changing later
 blendRoot="${HOMEBREW_PREFIX}/Elevage"
 blendFormulaPath="BlendFormula"
