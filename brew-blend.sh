@@ -462,21 +462,24 @@ command_search()
 {
 	ensureInstallation
 	
-	#Ensure exactly one blend name is provided
+	#Ensure no more than blend name is provided
 	#With just using `forEachBlend`, search would be **extremely** inefficient, and the output would likely be confusing, so it's being limited to 1 blend at a time
-	if [ "${#}" = "0" ]
-	then
-		catStatus "No blend names were provided" 1>&2
-		return 71
-	
-	elif [ "${#}" -gt "1" ]
+	if [ "${#}" -gt "1" ]
 	then
 		catStatus "Please provide only one blend name" 1>&2
 		return 72
 	fi
 	
-	#Store the blend name in a variable for easy reference
-	blendName="${1}"
+	
+	#If no blend name is provided, leave the blend name empty for a wildcard search
+	if [ "${#}" = "0" ]
+	then
+		blendName=""
+	
+	#Otherwise, set it to the provided argument
+	else
+		blendName="${1}"
+	fi
 	
 	
 	#Get paths to all taps
