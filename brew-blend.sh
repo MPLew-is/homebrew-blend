@@ -642,6 +642,8 @@ uninstallBlend()
 	#While the leaf formulae keep changing, continue running through the uninstallation
 	#This is done to allow the uninstallation of chained formulae that are not used anywhere else
 	#For instance, if a blend installs A, B, and C (in that order), where A depends on B depends on C, the first pass will uninstall C, the second B, and the third A until `brew leaves` remains the same indicating there are no more leaf formulae available for uninstall
+	#This works in reverse too, if C depends on B depends on A, the first pass will remove A, the second B, and the third C
+	#If a formula not in this blend depends on a formula in this blend, brew leaves will not list the formula as a leaf, leading to it not being uninstalled
 	leaves="$(brew leaves)"
 	while [ "${leaves}" != "${storedLeaves}" ]
 	do
